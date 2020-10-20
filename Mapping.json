@@ -1,0 +1,46 @@
+{
+  "data": [
+    {
+      "client_name": "Machine 13",
+      "engine": "Engine 1",
+      "sip_device_id": "prd_0fb159ab-0372-4baf-a9ef-81818607201a",
+      "mac_address": "1000000010000150",
+      "device_local_id": "15000"
+    },
+    {
+      "client_name": "Machine 14",
+      "engine": "Engine 1",
+      "sip_device_id": "prd_cc00a6e1-3024-4620-a04e-ccec3fafc6c9",
+      "mac_address": "1000000010000151",
+      "device_local_id": "15001"
+    },
+    {
+      "client_name": "Machine 15",
+      "engine": "Enigne 1",
+      "sip_device_id": "prd_af44dd61-5af8-4036-b639-5155ed098cf6",
+      "mac_address": "1000000010000152",
+      "device_local_id": "15002"
+    },
+    {
+      "client_name": "Machine 15",
+      "engine": "Engine 2",
+      "sip_device_id": "prd_98b9c0f5-a68f-4e38-9187-294ba8a7cab9",
+      "mac_address": "1000000010000153",
+      "device_local_id": "15003"
+    },
+    {
+      "client_name": "Machine 16",
+      "engine": "Engine 1",
+      "sip_device_id": "prd_d5aec30e-acc8-4198-b6f5-b2e4c2617f08",
+      "mac_address": "1000000010000154",
+      "device_local_id": "15004"
+    },
+    {
+      "client_name": "Machine 17",
+      "engine": "Engine 1",
+      "sip_device_id": "prd_c02ecbc1-f4fa-44c7-92e6-e3beb30a9698",
+      "mac_address": "1000000010000155",
+      "device_local_id": "15005"
+    }
+  ]
+}
