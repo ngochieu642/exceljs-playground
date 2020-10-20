@@ -264,6 +264,27 @@ const addCustomDeviceSheet = (workbook) => {
 
 const addListLimitToProductPlanSheet = (workbook) => {
   // For customDevice column, limit to 'customdevice'
+  const productPlanSheet = workbook.getWorksheet('Product Plan');
+  const lastRow = productPlanSheet.lastRow;
+
+  let customDeviceCol = productPlanSheet.getColumn('customDeviceName');
+  let customDeviceColAlphabet = numberToAlphabet(customDeviceCol._number);
+
+  productPlanSheet.eachRow({includeEmpty: true}, function(row, rowNumber) {
+    // Heade row
+    if (rowNumber === 1) {
+      return;
+    }
+
+    // Else
+    let customDeviceCell = row.getCell('customDeviceName');
+    customDeviceCell.dataValidation = {
+      type: 'list',
+      allowBlank: true,
+      formulae: '=customdevice'
+    }
+  })
+
   // For device column, limit = INDIRECT(SUBSTITUTE(A$, " ", ""))
   return workbook;
 }
