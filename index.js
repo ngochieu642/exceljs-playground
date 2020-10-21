@@ -42,7 +42,7 @@ const writeWorkbook = async (filename, toWriteWorkbook) => {
 }
 
 class ExcelJSHeader {
-  constructor(header, key, width=null) {
+  constructor(header, key, width = null) {
     this.header = header;
     this.key = key;
 
@@ -59,6 +59,10 @@ class ExcelJSHeader {
       key: this.key,
       width: this.width,
     }
+  }
+
+  get excelNameFromHeader() {
+    return validName(this.header);
   }
 }
 
@@ -215,7 +219,7 @@ const addProductPlanSheet = (workbook, allowedRows) => {
 }
 
 const validName = (inputName) => {
-  return inputName.toLowerCase().trim().replace(/\s\s+/, '');
+  return inputName.toLowerCase().trim().replace(/\s+/, '');
 };
 
 const addCustomDeviceSheet = (workbook) => {
@@ -223,20 +227,16 @@ const addCustomDeviceSheet = (workbook) => {
 
   // Achieve custom device listr
   let {data} = JSON.parse(fs.readFileSync('./Mapping.json', {encoding: 'utf-8'}))
-  let customDeviceNameUniqArr = _.uniq(data.map(x => {
-    try {
-      return x['client_name'];
-    } catch (e) {
-      return null;
-    }
-  }))
-  customDeviceNameUniqArr = customDeviceNameUniqArr.filter(x => !!x);
+
+  let validData = data.filter(x => !!x && !!x['client_name']);
+  let customDeviceNameUniqArr = _.uniq(validData.map(x => x['client_name']));
 
   // Add 1 CustomDevice Column & many specific-column
   let columnArr = [
     {header: 'Custom Device', key: 'customDevice', width: 30}
   ]
 
+  // Add custom device specific name column
   let generatedHeaders = customDeviceNameUniqArr.map(x => {
     let headerObj = new ExcelJSHeader(x, x);
     return headerObj.excelJSFormat;
@@ -250,15 +250,35 @@ const addCustomDeviceSheet = (workbook) => {
   let customDeviceCol = customDeviceSheet.getColumn('customDevice');
   customDeviceCol.values = [customDeviceCol.values[1], ...customDeviceNameUniqArr]; // customDeviceCol.values = [undefined, 'header name']
 
-  // Define Cell Range from A2 -> A(end) to become
-  customDeviceCol.eachCell({includeEmpty: false}, function (cell, rowNumber) {
-    console.log(rowNumber);
+  // Define Cell Range from A2 -> A(end) to become customdevice
+  customDeviceCol.eachCell({includeEmpty: true}, function (cell, rowNumber) {
+    // Header row
+    if (rowNumber === 1) {
+      return;
+    }
+
+    // Else
     cell.name = 'customdevice';
   })
 
-  // For each Custom Device
-    // Add a column name = Custom Device Name
-    // Define cell Range from colAlphabet (2) -> colAlphabet(end) to become validName(customDeviceName)
+  // For each Custom Device: Define cell Range from colAlphabet (2) -> colAlphabet(end) to become validName(customDeviceName)
+  // validData: this contains all records, you can get device list of a custom device from here
+  // customDeviceNameUniqArr: this array contains all the unique name of custom device
+  customDeviceNameUniqArr.forEach(customDeviceName => {
+    let specificNameCol = customDeviceSheet.getColumn(customDeviceName);
+    let devicesOfSpecificCustomDevice = validData.filter(x => x['client_name'] === customDeviceName).map(x => x['engine'])
+    specificNameCol.values = [specificNameCol.values[1], ..._.uniq(devicesOfSpecificCustomDevice)]
+
+    specificNameCol.eachCell({includeEmpty: true}, function (cell, rowNumber) {
+      if (rowNumber === 1) {
+        return;
+      }
+
+      let nameToWrite = validName(customDeviceName)
+      cell.name = nameToWrite;
+    })
+  })
+
   return workbook;
 }
 
@@ -270,8 +290,8 @@ const addListLimitToProductPlanSheet = (workbook) => {
   let customDeviceCol = productPlanSheet.getColumn('customDeviceName');
   let customDeviceColAlphabet = numberToAlphabet(customDeviceCol._number);
 
-  productPlanSheet.eachRow({includeEmpty: true}, function(row, rowNumber) {
-    // Heade row
+  productPlanSheet.eachRow({includeEmpty: true}, function (row, rowNumber) {
+    // Header row
     if (rowNumber === 1) {
       return;
     }
@@ -281,11 +301,20 @@ const addListLimitToProductPlanSheet = (workbook) => {
     customDeviceCell.dataValidation = {
       type: 'list',
       allowBlank: true,
-      formulae: '=customdevice'
+      formulae: ['=customdevice']
+    }
+
+    // For device column, limit = INDIRECT(SUBSTITUTE(A$, " ", ""))
+    let myString = `=INDIRECT(SUBSTITUTE(${customDeviceColAlphabet}${rowNumber}, " ", ""))`
+
+    let engineCell = row.getCell('deviceName');
+    engineCell.dataValidation = {
+      type: 'list',
+      allowBlank: true,
+      formulae: [myString]
     }
   })
 
-  // For device column, limit = INDIRECT(SUBSTITUTE(A$, " ", ""))
   return workbook;
 }
 
